@@ -3,71 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TimeCalc - Calculadora de Tiempo</title>
+    <title>TimeCalc | Calculadora de Tiempo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; color: white; }
+        body { background-color: #0f172a; color: white; margin: 0; padding: 0; }
         .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        /* Asegura que los inputs no se desborden */
+        input { 
+            max-width: 100%; 
+            box-sizing: border-box; 
+            appearance: none;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="glass p-8 rounded-2xl shadow-2xl w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center text-blue-400">Calculadora de Tiempo</h1>
+    <div class="glass p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-md mx-auto">
+        <h1 class="text-2xl font-bold mb-6 text-center text-blue-400 tracking-tight">TimeCalc</h1>
         
         <div class="mb-6">
-            <label class="block text-sm font-medium mb-2">Hora Inicial (o actual)</label>
+            <label class="block text-sm font-medium mb-2 text-slate-300">Hora Inicial</label>
             <input type="time" id="horaBase" 
-                   class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-xl text-center focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                   class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-xl text-center text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all">
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <div>
+        <div class="flex gap-4 mb-8">
+            <div class="flex-1">
                 <label class="block text-xs uppercase tracking-wider text-slate-400 mb-1">Horas</label>
                 <input type="number" id="horasIn" placeholder="0" min="0"
-                       class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-center focus:border-blue-400 outline-none">
+                       class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-center text-white focus:border-blue-400 outline-none">
             </div>
-            <div>
+            <div class="flex-1">
                 <label class="block text-xs uppercase tracking-wider text-slate-400 mb-1">Minutos</label>
                 <input type="number" id="minutosIn" placeholder="0" min="0"
-                       class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-center focus:border-blue-400 outline-none">
+                       class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 text-center text-white focus:border-blue-400 outline-none">
             </div>
         </div>
 
         <div class="flex gap-4 mb-8">
             <button onclick="calcular('restar')" 
-                    class="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-xl font-bold transition-colors shadow-lg active:scale-95">
+                    class="flex-1 bg-red-600 hover:bg-red-500 py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-white">
                 Restar -
             </button>
             <button onclick="calcular('sumar')" 
-                    class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold transition-colors shadow-lg active:scale-95">
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl font-bold transition-all shadow-lg active:scale-95 text-white">
                 Sumar +
             </button>
         </div>
 
-        <div id="contenedorResultado" class="hidden animate-pulse">
-            <div class="text-center p-4 bg-slate-900/50 rounded-lg border border-blue-500/30">
+        <div id="contenedorResultado" class="hidden">
+            <div class="text-center p-6 bg-slate-900/80 rounded-xl border border-blue-500/40">
                 <p class="text-slate-400 text-sm mb-1">Hora Resultante</p>
-                <span id="resultado" class="text-4xl font-black text-white">--:--</span>
-                <p id="infoDia" class="text-xs mt-2 text-blue-300 font-medium"></p>
+                <span id="resultado" class="text-5xl font-black text-white">--:--</span>
+                <p id="infoDia" class="text-sm mt-2 text-blue-300 font-medium"></p>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. Establecer hora actual por defecto al cargar
+        // Establecer hora actual por defecto al iniciar
         window.onload = () => {
             const ahora = new Date();
-            const horas = String(ahora.getHours()).padStart(2, '0');
-            const minutos = String(ahora.getMinutes()).padStart(2, '0');
-            document.getElementById('horaBase').value = `${horas}:${minutos}`;
+            const h = String(ahora.getHours()).padStart(2, '0');
+            const m = String(ahora.getMinutes()).padStart(2, '0');
+            document.getElementById('horaBase').value = `${h}:${m}`;
         };
 
-        // 2. Lógica de cálculo
         function calcular(operacion) {
             const inputHora = document.getElementById('horaBase').value;
             const addH = parseInt(document.getElementById('horasIn').value) || 0;
@@ -75,48 +80,34 @@
 
             if (!inputHora) return;
 
-            // Crear objeto fecha basado en el input (usamos fecha de hoy como base)
+            // Base temporal
             const [h, m] = inputHora.split(':');
             let fecha = new Date();
             fecha.setHours(parseInt(h), parseInt(m), 0, 0);
-
-            // Guardar el día original para saber si cambió
-            const diaOriginal = fecha.getDate();
-
-            // Convertir el tiempo introducido a milisegundos
+            
+            // Guardamos referencia para comparar cambios de día
+            const msOriginal = fecha.getTime();
             const desplazamientoMs = (addH * 60 + addM) * 60000;
 
-            if (operacion === 'sumar') {
-                fecha.setTime(fecha.getTime() + desplazamientoMs);
-            } else {
-                fecha.setTime(fecha.getTime() - desplazamientoMs);
-            }
+            // Operación
+            fecha.setTime(operacion === 'sumar' ? msOriginal + desplazamientoMs : msOriginal - desplazamientoMs);
 
-            // Formatear salida
+            // Formato de salida
             const resH = String(fecha.getHours()).padStart(2, '0');
             const resM = String(fecha.getMinutes()).padStart(2, '0');
-            
-            // Mostrar resultado
             document.getElementById('resultado').innerText = `${resH}:${resM}`;
             
-            // Lógica para indicar si es otro día
-            const infoDia = document.getElementById('infoDia');
-            const diferenciaDias = fecha.getDate() - diaOriginal;
+            // Cálculo de días de diferencia
+            const d1 = new Date(msOriginal).setSeconds(0,0);
+            const d2 = new Date(fecha).setSeconds(0,0);
+            const diffDias = Math.round((d2 - d1) / 86400000);
             
-            if (diferenciaDias > 0) {
-                infoDia.innerText = `(+${diferenciaDias} día${diferenciaDias > 1 ? 's' : ''} después)`;
-            } else if (diferenciaDias < 0) {
-                infoDia.innerText = `(${Math.abs(diferenciaDias)} día${Math.abs(diferenciaDias) > 1 ? 's' : ''} antes)`;
-            } else {
-                infoDia.innerText = "Mismo día";
-            }
+            const infoDia = document.getElementById('infoDia');
+            if (diffDias > 0) infoDia.innerText = `(+${diffDias} día${diffDias > 1 ? 's' : ''} después)`;
+            else if (diffDias < 0) infoDia.innerText = `(${Math.abs(diffDias)} día${Math.abs(diffDias) > 1 ? 's' : ''} antes)`;
+            else infoDia.innerText = "Mismo día";
 
-            // Mostrar el contenedor con una pequeña animación
-            const container = document.getElementById('contenedorResultado');
-            container.classList.remove('hidden');
-            container.classList.remove('animate-pulse');
-            void container.offsetWidth; // Trigger reflow
-            container.classList.add('animate-bounce-short'); // Podrías añadir custom anims
+            document.getElementById('contenedorResultado').classList.remove('hidden');
         }
     </script>
 </body>
