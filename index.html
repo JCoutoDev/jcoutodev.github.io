@@ -3,50 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Calculadora de Balance de Materia - Horno de Aluminio</title>
+    <title>Elaboración Fundición - Cálculos para Elaboración de Hornos</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Touch feedback utility */
+
         .active-scale:active {
             transform: scale(0.98);
         }
-        /* Custom scrollbar for tab navigation if needed */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+
+        /* Hide arrow spinners in number inputs for industrial clarity */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0; 
         }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        table th, table td {
+            vertical-align: middle;
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen pb-12">
+<body class="bg-slate-900 text-slate-100 min-h-screen pb-12 select-none">
 
-    <!-- Encabezado Móvil de Planta -->
-    <header class="sticky top-0 z-50 bg-slate-800 border-b border-slate-700 shadow-lg px-4 py-3">
+    <header class="sticky top-0 z-50 bg-slate-800/95 backdrop-blur-md border-b border-slate-700 shadow-lg px-4 py-3">
         <div class="max-w-md mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <div class="p-2 bg-amber-500 text-slate-950 rounded-lg font-bold text-lg">
-                    Al
-                </div>
-                <div>
-                    <h1 class="text-base font-bold text-white leading-tight">Fundición Al-Calc</h1>
-                    <p class="text-xs text-slate-400">Balance de Materia en Horno</p>
-                </div>
+            <div>
+                <h1 class="text-lg font-extrabold text-white leading-tight tracking-tight">Elaboración Fundición</h1>
+                <p class="text-xs text-amber-400/90 font-medium">Cálculos para Elaboración de Hornos</p>
             </div>
-            <!-- Botones de Acción Rápida -->
+            <!-- Acciones Rápidas -->
             <div class="flex items-center space-x-2">
-                <button onclick="cargarEjemplo()" class="active-scale bg-slate-700 hover:bg-slate-600 text-amber-400 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-amber-500/30 transition">
+                <button onclick="cargarEjemplo()" class="active-scale bg-slate-700 hover:bg-slate-600 text-amber-400 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-amber-500/30 transition shadow-sm">
                     Ejemplo
                 </button>
-                <button onclick="limpiarFormulario()" class="active-scale bg-slate-700 hover:bg-slate-600 text-red-400 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-red-500/30 transition">
+                <button onclick="limpiarFormulario()" class="active-scale bg-slate-700 hover:bg-slate-600 text-red-400 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-red-500/30 transition shadow-sm">
                     Limpiar
                 </button>
             </div>
@@ -55,74 +56,86 @@
 
     <main class="max-w-md mx-auto px-4 pt-4">
 
-        <!-- Pestañas de Modo -->
-        <div class="flex bg-slate-800 p-1 rounded-xl mb-4 border border-slate-700">
-            <button id="btn-tab1" onclick="cambiarModo(1)" class="flex-1 py-2.5 text-xs font-bold rounded-lg transition-all text-amber-400 bg-slate-700 shadow-sm">
-                1. Mezcla Directa
-            </button>
-            <button id="btn-tab2" onclick="cambiarModo(2)" class="flex-1 py-2.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">
-                2. Corrección / Adición
-            </button>
+        <div id="toast-notif" class="hidden mb-4 p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-200 text-xs font-medium flex items-center justify-between shadow-lg transition-all">
+            <span id="toast-mensaje"></span>
+            <button onclick="ocultarNotificacion()" class="ml-2 text-red-300 hover:text-white font-bold text-base leading-none">&times;</button>
         </div>
 
-        <!-- SECCIÓN 1: DATOS INICIALES DEL HORNO (Compartido) -->
-        <section class="bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700 shadow-md">
+        <nav class="grid grid-cols-2 gap-1.5 bg-slate-800 p-1.5 rounded-xl mb-4 border border-slate-700 text-center">
+            <button id="btn-tab1" onclick="cambiarTab(1)" class="py-2.5 px-1 text-xs font-bold rounded-lg transition-all text-amber-400 bg-slate-700 shadow-sm">
+                Ajuste Aleación
+            </button>
+            <button id="btn-tab2" onclick="cambiarTab(2)" class="py-2.5 px-1 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">
+                Cálculo Refusión
+            </button>
+            <button id="btn-tab3" onclick="cambiarTab(3)" class="py-2.5 px-1 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">
+                Peso Paquete
+            </button>
+            <button id="btn-tab4" onclick="cambiarTab(4)" class="py-2.5 px-1 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200">
+                Cálculo Lavado
+            </button>
+        </nav>
+
+        <section id="sec-horno-base" class="bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700 shadow-md">
             <div class="flex justify-between items-center mb-3">
-                <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                     Estado Actual del Horno
                 </h2>
-                <!-- Selector de Unidad -->
-                <div class="flex bg-slate-900 rounded-lg p-0.5 border border-slate-700 text-xs font-semibold">
-                    <button id="unit-t" onclick="setUnidad('t')" class="px-2 py-1 rounded bg-amber-500 text-slate-950 font-bold">t</button>
-                    <button id="unit-kg" onclick="setUnidad('kg')" class="px-2 py-1 rounded text-slate-400">kg</button>
-                </div>
+                <span class="text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">kg</span>
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-slate-300 mb-1">Masa inicial en horno (<span class="unit-label">t</span>)</label>
-                <input type="number" id="m0" step="any" placeholder="Ej. 10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white font-semibold text-base focus:outline-none focus:border-amber-500 transition">
+                <label class="block text-xs font-medium text-slate-300 mb-1">Carga actual en horno (kg)</label>
+                <input type="number" id="m0" step="any" placeholder="Ej. 10000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-semibold text-base focus:outline-none focus:border-amber-500 transition">
             </div>
 
             <div class="mt-3">
                 <label class="block text-xs font-medium text-slate-300 mb-1.5">Composición química actual (%)</label>
                 <div class="grid grid-cols-4 gap-2 text-center" id="horno-comp-grid">
-                    <!-- Generado dinámicamente -->
+                    <!-- Populated dynamically via JS -->
                 </div>
             </div>
         </section>
 
-        <!-- MODO 1: MEZCLA DIRECTA -->
-        <div id="modo-1" class="space-y-4">
+        <div id="tab-1" class="space-y-4">
             <section class="bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-md">
-                <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    Paquete / Metal a Añadir
+                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Composición Química Deseada (%)
                 </h2>
-                <div class="mb-3">
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Masa del paquete (<span class="unit-label">t</span>)</label>
-                    <input type="number" id="ma" step="any" placeholder="Ej. 2" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white font-semibold text-base focus:outline-none focus:border-amber-500 transition">
+
+                <div class="grid grid-cols-4 gap-2 text-center" id="deseado-comp-grid">
+                    <!-- Populated dynamically via JS -->
                 </div>
 
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Composición del paquete (%)</label>
-                    <div class="grid grid-cols-4 gap-2 text-center" id="paquete-comp-grid">
-                        <!-- Generado dinámicamente -->
+                <div class="mt-4 pt-3 border-t border-slate-700/80 text-[11px] text-slate-400 space-y-1">
+                    <div class="font-semibold text-slate-300 mb-1">% Aleantes Aplicado:</div>
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-0.5">
+                        <span>• Si: 100% | Mg: 100%</span>
+                        <span>• Mn: 90% | Ti: 98%</span>
+                        <span class="col-span-2">• Fe: 80% | Cu: 80% | Cr: 80%</span>
                     </div>
                 </div>
             </section>
 
-            <button onclick="calcularModo1()" class="active-scale w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 rounded-xl shadow-lg transition text-base flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                Calcular Mezcla Final
+            <button onclick="calcularAjusteAleacion()" class="active-scale w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3.5 rounded-xl shadow-lg transition text-base flex items-center justify-center gap-2">
+                Calcular
             </button>
 
-            <!-- RESULTADOS MODO 1 -->
-            <section id="res-modo1" class="hidden bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-md">
+            <!-- Results Tab 1 -->
+            <section id="res-tab1" class="hidden bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-md">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Resultado de Mezcla</h3>
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 mb-3 flex justify-between items-center">
-                    <span class="text-xs text-slate-300 font-medium">Masa Total Final:</span>
-                    <span class="text-lg font-bold text-amber-400"><span id="res-m1-mf">0</span> <span class="unit-label">t</span></span>
+                
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700">
+                        <span class="text-[11px] text-slate-400 font-medium block">Total Aleantes:</span>
+                        <span class="text-base font-bold text-amber-400"><span id="res-tab1-total-aleantes">0</span> kg</span>
+                    </div>
+                    <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700">
+                        <span class="text-[11px] text-slate-400 font-medium block">Carga Final Horno:</span>
+                        <span class="text-base font-bold text-white"><span id="res-tab1-mf">0</span> kg</span>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -130,214 +143,389 @@
                         <thead class="text-slate-400 border-b border-slate-700">
                             <tr>
                                 <th class="py-2">Elem</th>
-                                <th class="py-2 text-right">Inicial</th>
-                                <th class="py-2 text-right">Añadido</th>
+                                <th class="py-2 text-center">Act. %</th>
+                                <th class="py-2 text-center">Obj. %</th>
+                                <th class="py-2 text-right">Kg Aleante</th>
                                 <th class="py-2 text-right">Final %</th>
-                                <th class="py-2 text-right">Var. %</th>
                             </tr>
                         </thead>
-                        <tbody id="tabla-res-m1" class="divide-y divide-slate-700/50">
-                            <!-- Filas dinámicas -->
+                        <tbody id="tabla-res-tab1" class="divide-y divide-slate-700/50">
+                            <!-- Dynamic rows -->
                         </tbody>
                     </table>
                 </div>
             </section>
         </div>
 
-        <!-- MODO 2: CORRECCIÓN / CÁLCULO DE ADICIÓN -->
-        <div id="modo-2" class="hidden space-y-4">
+        <div id="tab-2" class="hidden space-y-4">
             <section class="bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-md">
-                <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    Ajuste Deseado
+                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                    Cálculo Refusión (Paquete / Metal a Añadir)
                 </h2>
-
-                <!-- Selector Elemento -->
                 <div class="mb-3">
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Elemento Crítico a Ajustar</label>
-                    <select id="elem-objetivo" onchange="actualizarModo2View()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white font-semibold text-sm focus:outline-none focus:border-amber-500 transition">
-                        <!-- Opciones dinámicas -->
-                    </select>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Masa del paquete/refusión (kg)</label>
+                    <input type="number" id="ma" step="any" placeholder="Ej. 2000" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-semibold text-base focus:outline-none focus:border-amber-500 transition">
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">% Objetivo Deseado</label>
-                        <input type="number" id="fe_f" step="any" placeholder="Ej. 1.10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white font-semibold text-base focus:outline-none focus:border-amber-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">% del Aditivo Disponible</label>
-                        <input type="number" id="fe_a" step="any" placeholder="Ej. 0.12" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white font-semibold text-base focus:outline-none focus:border-amber-500 transition">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Composición química del paquete (%)</label>
+                    <div class="grid grid-cols-4 gap-2 text-center" id="paquete-comp-grid">
+                        <!-- Populated dynamically via JS -->
                     </div>
                 </div>
             </section>
 
-            <button onclick="calcularModo2()" class="active-scale w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 rounded-xl shadow-lg transition text-base flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                Calcular Masa Requerida
+            <button onclick="calcularRefusion()" class="active-scale w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3.5 rounded-xl shadow-lg transition text-base flex items-center justify-center gap-2">
+                Calcular
             </button>
 
-            <!-- ALERTAS MODO 2 -->
-            <div id="alerta-m2" class="hidden p-3.5 rounded-xl border text-xs font-semibold leading-relaxed"></div>
+            <!-- Results Tab 2 -->
+            <section id="res-tab2" class="hidden bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-md">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Resultado de Refusión</h3>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 mb-3 flex justify-between items-center">
+                    <span class="text-xs text-slate-300 font-medium">Masa Total Final Horno:</span>
+                    <span class="text-lg font-bold text-amber-400"><span id="res-tab2-mf">0</span> kg</span>
+                </div>
 
-            <!-- RESULTADOS MODO 2 -->
-            <section id="res-modo2" class="hidden bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-md">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Adición Requerida</h3>
-                <div class="bg-slate-900 p-3.5 rounded-lg border border-slate-700 mb-3 text-center">
-                    <span class="text-xs text-slate-400 font-medium block mb-1">Masa de Aditivo Necesaria:</span>
-                    <div class="text-2xl font-bold text-amber-400">
-                        <span id="res-m2-ma">0</span> <span class="unit-label">t</span>
-                    </div>
-                    <div class="text-xs text-slate-400 mt-1">
-                        (<span id="res-m2-ma-alt">0</span>)
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-slate-400 border-b border-slate-700">
+                            <tr>
+                                <th class="py-2">Elem</th>
+                                <th class="py-2 text-right">Inic. %</th>
+                                <th class="py-2 text-right">Añad. %</th>
+                                <th class="py-2 text-right">Final %</th>
+                                <th class="py-2 text-right">Var. %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-res-tab2" class="divide-y divide-slate-700/50">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <div id="tab-3" class="hidden space-y-4">
+            <section class="bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-md">
+                <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    Dimensiones del Paquete
+                </h2>
+
+                <!-- Selector de Tipo de Formato -->
+                <div class="mb-3">
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Geometría del Metal</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" id="btn-tipo-placa" onclick="seleccionarTipoPaquete('placa')" class="py-2 text-xs font-bold rounded-lg border transition-all text-amber-400 bg-slate-700 border-amber-500/50 shadow-sm">
+                            Placa
+                        </button>
+                        <button type="button" id="btn-tipo-tocho" onclick="seleccionarTipoPaquete('tocho')" class="py-2 text-xs font-bold rounded-lg border transition-all text-slate-400 border-slate-700 bg-slate-900 hover:text-slate-200">
+                            Tocho
+                        </button>
                     </div>
                 </div>
 
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 space-y-1.5 text-xs">
-                    <div class="flex justify-between text-slate-300">
-                        <span>Masa inicial horno:</span>
-                        <span class="font-semibold text-white"><span id="res-m2-m0">0</span> <span class="unit-label">t</span></span>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label id="lbl-pkg-largo" class="block text-xs font-medium text-slate-300">Largo (mm)</label>
+                            <span id="badge-tocho-sync" class="hidden text-[10px] text-amber-400 font-semibold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Sincronizado Ø</span>
+                        </div>
+                        <input type="number" id="pkg-largo" step="any" placeholder="Ej. 1200" oninput="onDimensionChange('largo')" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-semibold focus:outline-none focus:border-amber-500">
                     </div>
-                    <div class="flex justify-between text-slate-300">
-                        <span>Masa final proyectada:</span>
-                        <span class="font-semibold text-amber-400"><span id="res-m2-mf">0</span> <span class="unit-label">t</span></span>
+                    <div>
+                        <label id="lbl-pkg-ancho" class="block text-xs font-medium text-slate-300 mb-1">Ancho (mm)</label>
+                        <input type="number" id="pkg-ancho" step="any" placeholder="Ej. 800" oninput="onDimensionChange('ancho')" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-semibold focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label id="lbl-pkg-alto" class="block text-xs font-medium text-slate-300 mb-1">Alto / Longitud (mm)</label>
+                        <input type="number" id="pkg-alto" step="any" placeholder="Ej. 600" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-semibold focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Densidad (g/cm³)</label>
+                        <input type="number" id="pkg-densidad" step="0.01" value="2.7" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-semibold focus:outline-none focus:border-amber-500">
+                        <span class="text-[10px] text-slate-400 mt-0.5 block">Aluminio estándar ≈ 2.70 g/cm³</span>
                     </div>
                 </div>
+            </section>
+
+            <button onclick="calcularPesoPaquete()" class="active-scale w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3.5 rounded-xl shadow-lg transition text-base flex items-center justify-center gap-2">
+                Calcular
+            </button>
+
+            <!-- Results Tab 3 -->
+            <section id="res-tab3" class="hidden bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-md text-center">
+                <span class="text-xs text-slate-400 font-medium uppercase tracking-wider block mb-1">Peso Estimado del Metal</span>
+                <div class="text-3xl font-bold text-amber-400 my-1">
+                    <span id="res-pkg-kg">0</span> kg
+                </div>
+                <div class="text-xs text-slate-400 mt-2 border-t border-slate-700/60 pt-2 flex justify-around">
+                    <span>Volumen: <strong class="text-slate-200" id="res-pkg-vol">0</strong> mm³</span>
+                    <span>Toneladas: <strong class="text-slate-200" id="res-pkg-tn">0</strong> t</span>
+                </div>
+            </section>
+        </div>
+
+        <div id="tab-4" class="hidden">
+            <section class="bg-slate-800 rounded-xl p-8 border border-slate-700 shadow-md text-center space-y-3">
+                <div class="w-12 h-12 mx-auto bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center border border-amber-500/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                </div>
+                <h2 class="text-base font-bold text-white">Cálculo de Lavado de Snif</h2>
+                <p class="text-xs text-slate-400 leading-relaxed max-w-xs mx-auto">
+                    Módulo de simulación de cambio de aleación en desarrollo.
+                </p>
             </section>
         </div>
 
     </main>
 
     <script>
-        // Configuración Global y Elementos
         const ELEMENTOS = ['Si', 'Fe', 'Mg', 'Mn', 'Cu', 'Cr', 'Ti'];
-        let unidadActual = 't'; // 't' o 'kg'
-        let modoActivo = 1;
 
-        // Inicialización al cargar página
-        window.onload = function() {
-            renderGrids();
-            renderElemSelector();
+        // Riqueza Comercial / Rendimiento de Aleantes
+        const RIQUEZA_ALEANTES = {
+            Si: 1.00,
+            Fe: 0.80,
+            Mg: 1.00,
+            Mn: 0.90,
+            Cu: 0.80,
+            Cr: 0.80,
+            Ti: 0.98
         };
 
-        // Renderizar inputs para los 7 elementos
+        let tabActiva = 1;
+        let tipoPaquete = 'placa'; // 'placa' | 'tocho'
+
+        // Guaranteed Initialization Logic
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+
+        function initApp() {
+            renderGrids();
+        }
+
+        function seleccionarTipoPaquete(tipo) {
+            tipoPaquete = tipo;
+            const btnPlaca = document.getElementById('btn-tipo-placa');
+            const btnTocho = document.getElementById('btn-tipo-tocho');
+            const lblLargo = document.getElementById('lbl-pkg-largo');
+            const lblAncho = document.getElementById('lbl-pkg-ancho');
+            const lblAlto = document.getElementById('lbl-pkg-alto');
+            const badgeSync = document.getElementById('badge-tocho-sync');
+
+            if (tipo === 'placa') {
+                btnPlaca.className = "py-2 text-xs font-bold rounded-lg border transition-all text-amber-400 bg-slate-700 border-amber-500/50 shadow-sm";
+                btnTocho.className = "py-2 text-xs font-bold rounded-lg border transition-all text-slate-400 border-slate-700 bg-slate-900 hover:text-slate-200";
+                
+                lblLargo.textContent = "Largo (mm)";
+                lblAncho.textContent = "Ancho (mm)";
+                lblAlto.textContent = "Alto / Longitud (mm)";
+                if (badgeSync) badgeSync.classList.add('hidden');
+            } else {
+                btnTocho.className = "py-2 text-xs font-bold rounded-lg border transition-all text-amber-400 bg-slate-700 border-amber-500/50 shadow-sm";
+                btnPlaca.className = "py-2 text-xs font-bold rounded-lg border transition-all text-slate-400 border-slate-700 bg-slate-900 hover:text-slate-200";
+                
+                lblLargo.textContent = "Diámetro / Largo (mm)";
+                lblAncho.textContent = "Diámetro / Ancho (mm)";
+                lblAlto.textContent = "Longitud / Alto (mm)";
+                if (badgeSync) badgeSync.classList.remove('hidden');
+
+                // Si se selecciona Tocho, igualar dimensiones existentes
+                const valLargo = document.getElementById('pkg-largo').value;
+                const valAncho = document.getElementById('pkg-ancho').value;
+                if (valLargo) {
+                    document.getElementById('pkg-ancho').value = valLargo;
+                } else if (valAncho) {
+                    document.getElementById('pkg-largo').value = valAncho;
+                }
+            }
+        }
+
+        function onDimensionChange(campoCambiado) {
+            if (tipoPaquete === 'tocho') {
+                const elLargo = document.getElementById('pkg-largo');
+                const elAncho = document.getElementById('pkg-ancho');
+                if (campoCambiado === 'largo') {
+                    elAncho.value = elLargo.value;
+                } else if (campoCambiado === 'ancho') {
+                    elLargo.value = elAncho.value;
+                }
+            }
+        }
+
         function renderGrids() {
             const hornoGrid = document.getElementById('horno-comp-grid');
+            const deseadoGrid = document.getElementById('deseado-comp-grid');
             const paqueteGrid = document.getElementById('paquete-comp-grid');
 
+            if (!hornoGrid || !deseadoGrid || !paqueteGrid) return;
+
             hornoGrid.innerHTML = '';
+            deseadoGrid.innerHTML = '';
             paqueteGrid.innerHTML = '';
 
             ELEMENTOS.forEach(elem => {
-                // Input Horno
+                // Composición Horno Actual
                 hornoGrid.innerHTML += `
                     <div>
-                        <span class="block text-[10px] font-bold text-amber-400/80 mb-0.5">${elem}</span>
+                        <span class="block text-[10px] font-bold text-amber-400/90 mb-0.5">${elem}</span>
                         <input type="number" id="h_${elem}" step="any" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-1.5 py-1.5 text-white text-xs text-center font-medium focus:outline-none focus:border-amber-500">
                     </div>
                 `;
 
-                // Input Paquete
+                // Composición Deseada (Ajuste Aleación)
+                deseadoGrid.innerHTML += `
+                    <div>
+                        <span class="block text-[10px] font-bold text-amber-400/90 mb-0.5">${elem}</span>
+                        <input type="number" id="d_${elem}" step="any" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-1.5 py-1.5 text-white text-xs text-center font-medium focus:outline-none focus:border-amber-500">
+                    </div>
+                `;
+
+                // Composición Paquete (Cálculo Refusión)
                 paqueteGrid.innerHTML += `
                     <div>
-                        <span class="block text-[10px] font-bold text-amber-400/80 mb-0.5">${elem}</span>
+                        <span class="block text-[10px] font-bold text-amber-400/90 mb-0.5">${elem}</span>
                         <input type="number" id="p_${elem}" step="any" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-1.5 py-1.5 text-white text-xs text-center font-medium focus:outline-none focus:border-amber-500">
                     </div>
                 `;
             });
         }
 
-        function renderElemSelector() {
-            const select = document.getElementById('elem-objetivo');
-            select.innerHTML = '';
+        function mostrarNotificacion(mensaje) {
+            const toast = document.getElementById('toast-notif');
+            const msgEl = document.getElementById('toast-mensaje');
+            if (toast && msgEl) {
+                msgEl.textContent = mensaje;
+                toast.classList.remove('hidden');
+                toast.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function ocultarNotificacion() {
+            const toast = document.getElementById('toast-notif');
+            if (toast) {
+                toast.classList.add('hidden');
+            }
+        }
+
+        function cambiarTab(numTab) {
+            tabActiva = numTab;
+            
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`btn-tab${i}`);
+                const tab = document.getElementById(`tab-${i}`);
+                
+                if (i === numTab) {
+                    btn.className = "py-2.5 px-1 text-xs font-bold rounded-lg transition-all text-amber-400 bg-slate-700 shadow-sm";
+                    tab.classList.remove('hidden');
+                } else {
+                    btn.className = "py-2.5 px-1 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
+                    tab.classList.add('hidden');
+                }
+            }
+
+            const secHornoBase = document.getElementById('sec-horno-base');
+            if (numTab === 3 || numTab === 4) {
+                secHornoBase.classList.add('hidden');
+            } else {
+                secHornoBase.classList.remove('hidden');
+            }
+        }
+
+        function calcularAjusteAleacion() {
+            ocultarNotificacion();
+            const m0 = parseFloat(document.getElementById('m0').value);
+
+            if (isNaN(m0) || m0 <= 0) {
+                mostrarNotificacion("Por favor ingresa una masa actual de horno válida (kg).");
+                return;
+            }
+
+            let totalKgAleantesComerciales = 0;
+            const resultados = [];
+
             ELEMENTOS.forEach(elem => {
-                select.innerHTML += `<option value="${elem}">${elem} (${getElementName(elem)})</option>`;
+                const cActual = parseFloat(document.getElementById(`h_${elem}`).value) || 0;
+                const cDeseada = parseFloat(document.getElementById(`d_${elem}`).value) || 0;
+                const riqueza = RIQUEZA_ALEANTES[elem];
+
+                let kgElementoPuroNecesario = 0;
+                let kgAleanteComercial = 0;
+
+                if (cDeseada > cActual) {
+                    kgElementoPuroNecesario = (m0 * (cDeseada - cActual)) / 100;
+                    kgAleanteComercial = kgElementoPuroNecesario / riqueza;
+                }
+
+                totalKgAleantesComerciales += kgAleanteComercial;
+
+                resultados.push({
+                    elem,
+                    cActual,
+                    cDeseada,
+                    kgAleanteComercial,
+                    riqueza
+                });
             });
+
+            const masaFinalHorno = m0 + totalKgAleantesComerciales;
+
+            document.getElementById('res-tab1-total-aleantes').textContent = formatNum(totalKgAleantesComerciales);
+            document.getElementById('res-tab1-mf').textContent = formatNum(masaFinalHorno);
+
+            const tbody = document.getElementById('tabla-res-tab1');
+            tbody.innerHTML = '';
+
+            resultados.forEach(res => {
+                const kgPurosIniciales = (m0 * res.cActual) / 100;
+                const kgPurosAñadidos = res.kgAleanteComercial * res.riqueza;
+                const pctFinalReal = ((kgPurosIniciales + kgPurosAñadidos) / masaFinalHorno) * 100;
+
+                const esExceso = res.cDeseada < res.cActual;
+                const textoKgAleante = esExceso 
+                    ? `<span class="text-red-400 font-semibold" title="Exceso / Requiere dilución">Exceso</span>` 
+                    : `${formatNum(res.kgAleanteComercial)} kg`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="py-2 font-bold text-amber-400">${res.elem}</td>
+                        <td class="py-2 text-center text-slate-300">${formatNum(res.cActual)}%</td>
+                        <td class="py-2 text-center text-slate-300">${formatNum(res.cDeseada)}%</td>
+                        <td class="py-2 text-right font-semibold text-white">${textoKgAleante}</td>
+                        <td class="py-2 text-right font-bold text-emerald-400">${formatNum(pctFinalReal)}%</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('res-tab1').classList.remove('hidden');
         }
 
-        function getElementName(symbol) {
-            const names = { Si: 'Silicio', Fe: 'Hierro', Mg: 'Magnesio', Mn: 'Manganeso', Cu: 'Cobre', Cr: 'Cromo', Ti: 'Titanio' };
-            return names[symbol] || symbol;
-        }
-
-        // Gestión de Unidades
-        function setUnidad(unit) {
-            if (unidadActual === unit) return;
-            
-            const btnT = document.getElementById('unit-t');
-            const btnKg = document.getElementById('unit-kg');
-            
-            if (unit === 't') {
-                btnT.className = "px-2 py-1 rounded bg-amber-500 text-slate-950 font-bold";
-                btnKg.className = "px-2 py-1 rounded text-slate-400";
-            } else {
-                btnKg.className = "px-2 py-1 rounded bg-amber-500 text-slate-950 font-bold";
-                btnT.className = "px-2 py-1 rounded text-slate-400";
-            }
-
-            // Convertir valores de masa actuales en pantalla
-            const m0Input = document.getElementById('m0');
-            const maInput = document.getElementById('ma');
-
-            if (m0Input.value) {
-                let m0 = parseFloat(m0Input.value);
-                m0Input.value = unit === 'kg' ? (m0 * 1000) : (m0 / 1000);
-            }
-            if (maInput.value) {
-                let ma = parseFloat(maInput.value);
-                maInput.value = unit === 'kg' ? (ma * 1000) : (ma / 1000);
-            }
-
-            unidadActual = unit;
-            document.querySelectorAll('.unit-label').forEach(el => el.textContent = unit);
-
-            // Recalcular según modo activo si hay resultados visibles
-            if (modoActivo === 1) calcularModo1();
-            if (modoActivo === 2) calcularModo2();
-        }
-
-        // Cambio de Modo
-        function cambiarModo(modo) {
-            modoActivo = modo;
-            const btn1 = document.getElementById('btn-tab1');
-            const btn2 = document.getElementById('btn-tab2');
-            const sec1 = document.getElementById('modo-1');
-            const sec2 = document.getElementById('modo-2');
-
-            if (modo === 1) {
-                btn1.className = "flex-1 py-2.5 text-xs font-bold rounded-lg transition-all text-amber-400 bg-slate-700 shadow-sm";
-                btn2.className = "flex-1 py-2.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
-                sec1.classList.remove('hidden');
-                sec2.classList.add('hidden');
-            } else {
-                btn2.className = "flex-1 py-2.5 text-xs font-bold rounded-lg transition-all text-amber-400 bg-slate-700 shadow-sm";
-                btn1.className = "flex-1 py-2.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-slate-200";
-                sec2.classList.remove('hidden');
-                sec1.classList.add('hidden');
-            }
-        }
-
-        // CÁLCULO MODO 1: MEZCLA DIRECTA
-        function calcularModo1() {
+        function calcularRefusion() {
+            ocultarNotificacion();
             const m0 = parseFloat(document.getElementById('m0').value);
             const ma = parseFloat(document.getElementById('ma').value);
 
             if (isNaN(m0) || isNaN(ma) || m0 <= 0 || ma <= 0) {
-                mostrarAlertaM1("Por favor ingresa valores válidos para la masa del horno y la masa a añadir.");
+                mostrarNotificacion("Ingresa una masa de horno y una masa de paquete/refusión válidas (kg).");
                 return;
             }
 
             const mf = m0 + ma;
-            document.getElementById('res-m1-mf').textContent = formatNum(mf);
+            document.getElementById('res-tab2-mf').textContent = formatNum(mf);
 
-            const tbody = document.getElementById('tabla-res-m1');
+            const tbody = document.getElementById('tabla-res-tab2');
             tbody.innerHTML = '';
 
             ELEMENTOS.forEach(elem => {
                 const c0 = parseFloat(document.getElementById(`h_${elem}`).value) || 0;
                 const ca = parseFloat(document.getElementById(`p_${elem}`).value) || 0;
 
-                // Fórmula de Mezcla Ponderada: Cf = (M0*C0 + Ma*Ca) / Mf
                 const cf = ((m0 * c0) + (ma * ca)) / mf;
                 const varNet = cf - c0;
 
@@ -346,7 +534,7 @@
 
                 tbody.innerHTML += `
                     <tr>
-                        <td class="py-2 font-bold text-amber-400/90">${elem}</td>
+                        <td class="py-2 font-bold text-amber-400">${elem}</td>
                         <td class="py-2 text-right text-slate-300">${formatNum(c0)}%</td>
                         <td class="py-2 text-right text-slate-300">${formatNum(ca)}%</td>
                         <td class="py-2 text-right font-bold text-white">${formatNum(cf)}%</td>
@@ -355,148 +543,101 @@
                 `;
             });
 
-            document.getElementById('res-modo1').classList.remove('hidden');
+            document.getElementById('res-tab2').classList.remove('hidden');
         }
 
-        function mostrarAlertaM1(msg) {
-            document.getElementById('res-modo1').classList.add('hidden');
-            alert(msg);
-        }
+        function calcularPesoPaquete() {
+            ocultarNotificacion();
+            const largo = parseFloat(document.getElementById('pkg-largo').value);
+            const ancho = parseFloat(document.getElementById('pkg-ancho').value);
+            const alto = parseFloat(document.getElementById('pkg-alto').value);
+            const densidad = parseFloat(document.getElementById('pkg-densidad').value) || 2.7;
 
-        // CÁLCULO MODO 2: CORRECCIÓN Y ADICIÓN
-        function calcularModo2() {
-            const m0 = parseFloat(document.getElementById('m0').value);
-            const elem = document.getElementById('elem-objetivo').value;
-            const c0 = parseFloat(document.getElementById(`h_${elem}`).value) || 0;
-            const cf = parseFloat(document.getElementById('fe_f').value);
-            const ca = parseFloat(document.getElementById('fe_a').value);
+            let volumenMm3 = 0;
 
-            const alertaBox = document.getElementById('alerta-m2');
-            const resBox = document.getElementById('res-modo2');
-
-            alertaBox.classList.add('hidden');
-            resBox.classList.add('hidden');
-
-            if (isNaN(m0) || m0 <= 0) {
-                mostrarAlertaM2("Ingresa una masa inicial válida para el horno.", "red");
-                return;
-            }
-            if (isNaN(cf) || isNaN(ca)) {
-                mostrarAlertaM2("Ingresa el % objetivo y el % del aditivo.", "red");
-                return;
-            }
-
-            // Validaciones Fisicoquímicas
-            if (ca === cf) {
-                mostrarAlertaM2(`Imposible alcanzar ${cf}% de ${elem}: El aditivo disponible tiene exactamente la misma concentración (${ca}%). No producirá ningún cambio.`, "yellow");
-                return;
-            }
-
-            // Intento de Dilución imposible
-            if (cf < c0 && ca >= cf) {
-                mostrarAlertaM2(`Imposible diluir ${elem} de ${c0}% a ${cf}%: El material de adición tiene un ${ca}% (superior o igual al objetivo). Necesitas un material con < ${cf}% de ${elem}.`, "red");
-                return;
-            }
-
-            // Intento de Alear imposible
-            if (cf > c0 && ca <= cf) {
-                mostrarAlertaM2(`Imposible subir ${elem} de ${c0}% a ${cf}%: El aditivo tiene solo un ${ca}% de ${elem}. Necesitas un aditivo o aleación madre con > ${cf}%.`, "red");
-                return;
-            }
-
-            // Fórmula de Corrección: Ma = M0 * (Cf - C0) / (Ca - Cf)
-            const ma = m0 * ((cf - c0) / (ca - cf));
-
-            if (ma <= 0) {
-                mostrarAlertaM2("El cálculo resultó en una masa negativa o nula. Verifica que las concentraciones ingresadas sean coherentes.", "red");
-                return;
-            }
-
-            const mf = m0 + ma;
-
-            // Renderizado de Resultados
-            document.getElementById('res-m2-ma').textContent = formatNum(ma);
-            
-            // Unidades alternativas para rápida lectura de operador
-            let altText = "";
-            if (unidadActual === 't') {
-                altText = `${formatNum(ma * 1000)} kg`;
+            if (tipoPaquete === 'placa') {
+                if (isNaN(largo) || isNaN(ancho) || isNaN(alto) || largo <= 0 || ancho <= 0 || alto <= 0) {
+                    mostrarNotificacion("Por favor ingresa las dimensiones completas de la placa (mm).");
+                    return;
+                }
+                volumenMm3 = largo * ancho * alto;
             } else {
-                altText = `${formatNum(ma / 1000)} t`;
+                // Modo Tocho (Cilindro)
+                const diametro = largo || ancho;
+                if (isNaN(diametro) || isNaN(alto) || diametro <= 0 || alto <= 0) {
+                    mostrarNotificacion("Por favor ingresa el diámetro (Largo/Ancho) y la longitud del tocho (mm).");
+                    return;
+                }
+                const radio = diametro / 2;
+                volumenMm3 = Math.PI * Math.pow(radio, 2) * alto;
             }
-            document.getElementById('res-m2-ma-alt').textContent = altText;
 
-            document.getElementById('res-m2-m0').textContent = formatNum(m0);
-            document.getElementById('res-m2-mf').textContent = formatNum(mf);
+            const volumenCm3 = volumenMm3 / 1000;
+            const masaGramos = volumenCm3 * densidad;
+            const masaKg = masaGramos / 1000;
+            const masaTn = masaKg / 1000;
 
-            resBox.classList.remove('hidden');
+            document.getElementById('res-pkg-kg').textContent = formatNum(masaKg);
+            document.getElementById('res-pkg-vol').textContent = formatNum(volumenMm3);
+            document.getElementById('res-pkg-tn').textContent = formatNum(masaTn);
+
+            document.getElementById('res-tab3').classList.remove('hidden');
         }
 
-        function mostrarAlertaM2(msg, color) {
-            const box = document.getElementById('alerta-m2');
-            box.classList.remove('hidden');
-            if (color === "red") {
-                box.className = "p-3.5 rounded-xl border text-xs font-semibold leading-relaxed bg-red-950/80 border-red-700 text-red-200";
-            } else {
-                box.className = "p-3.5 rounded-xl border text-xs font-semibold leading-relaxed bg-amber-950/80 border-amber-700 text-amber-200";
-            }
-            box.textContent = msg;
-        }
-
-        function actualizarModo2View() {
-            const elem = document.getElementById('elem-objetivo').value;
-            const c0 = parseFloat(document.getElementById(`h_${elem}`).value) || 0;
-            if (document.getElementById('res-modo2').classList.contains('hidden') === false) {
-                calcularModo2();
-            }
-        }
-
-        // Auxiliares
         function formatNum(num) {
             if (isNaN(num)) return "0.00";
-            return Number(num).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+            return Number(num).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function cargarEjemplo() {
-            setUnidad('t');
-            document.getElementById('m0').value = 10;
-            
-            // Ejemplo Horno
-            const ejHorno = { Si: 0.25, Fe: 1.20, Mg: 0.10, Mn: 0.15, Cu: 0.05, Cr: 0.02, Ti: 0.01 };
+            ocultarNotificacion();
+            document.getElementById('m0').value = 10000;
+
+            const ejHorno = { Si: 0.25, Fe: 0.60, Mg: 0.10, Mn: 0.15, Cu: 0.05, Cr: 0.02, Ti: 0.01 };
             ELEMENTOS.forEach(el => {
                 document.getElementById(`h_${el}`).value = ejHorno[el];
             });
 
-            // Modo 1 Paquete
-            document.getElementById('ma').value = 2;
+            const ejDeseado = { Si: 0.40, Fe: 0.80, Mg: 0.30, Mn: 0.25, Cu: 0.10, Cr: 0.05, Ti: 0.02 };
+            ELEMENTOS.forEach(el => {
+                document.getElementById(`d_${el}`).value = ejDeseado[el];
+            });
+
+            document.getElementById('ma').value = 2000;
             const ejPaq = { Si: 0.10, Fe: 0.12, Mg: 0.05, Mn: 0.08, Cu: 0.02, Cr: 0.01, Ti: 0.01 };
             ELEMENTOS.forEach(el => {
                 document.getElementById(`p_${el}`).value = ejPaq[el];
             });
 
-            // Modo 2
-            document.getElementById('elem-objetivo').value = 'Fe';
-            document.getElementById('fe_f').value = 1.10;
-            document.getElementById('fe_a').value = 0.12;
+            seleccionarTipoPaquete('placa');
+            document.getElementById('pkg-largo').value = 1000;
+            document.getElementById('pkg-ancho').value = 800;
+            document.getElementById('pkg-alto').value = 500;
+            document.getElementById('pkg-densidad').value = 2.7;
 
-            if (modoActivo === 1) calcularModo1();
-            if (modoActivo === 2) calcularModo2();
+            if (tabActiva === 1) calcularAjusteAleacion();
+            if (tabActiva === 2) calcularRefusion();
+            if (tabActiva === 3) calcularPesoPaquete();
         }
 
         function limpiarFormulario() {
+            ocultarNotificacion();
             document.getElementById('m0').value = '';
             document.getElementById('ma').value = '';
-            document.getElementById('fe_f').value = '';
-            document.getElementById('fe_a').value = '';
+            document.getElementById('pkg-largo').value = '';
+            document.getElementById('pkg-ancho').value = '';
+            document.getElementById('pkg-alto').value = '';
 
             ELEMENTOS.forEach(el => {
                 document.getElementById(`h_${el}`).value = '';
+                document.getElementById(`d_${el}`).value = '';
                 document.getElementById(`p_${el}`).value = '';
             });
 
-            document.getElementById('res-modo1').classList.add('hidden');
-            document.getElementById('res-modo2').classList.add('hidden');
-            document.getElementById('alerta-m2').classList.add('hidden');
+            seleccionarTipoPaquete('placa');
+            document.getElementById('res-tab1').classList.add('hidden');
+            document.getElementById('res-tab2').classList.add('hidden');
+            document.getElementById('res-tab3').classList.add('hidden');
         }
     </script>
 </body>
